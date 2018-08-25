@@ -1,3 +1,5 @@
+# Predict stock market price based on Quandl
+
 import pandas as pd
 import quandl
 import math
@@ -7,23 +9,26 @@ from sklearn.linear_model import LinearRegression
 from matplotlib import style
 import matplotlib.pyplot as plt
 
-style.use('ggplot')
 
 pd.set_option('display.max_columns', 20)
 
+# Get data from Quandl
 df = quandl.get('WIKI/GOOGL')
 
+# Select desired columns
 df = df[['Adj. Open', 'Adj. Close', 'Adj. High', 'Adj. Low']]
-pretest = 'Adj. Close'
+pretest = 'Adj. Close' # desired results
+df.fillna(-999999, inplace=True) # change unknown to outliers
 
-df.fillna(-999999, inplace=True)
-
+# Number of days for predition
 shiftp = 0.001
 shift = int(math.ceil(shiftp*len(df)))
 
+# Shift data set and drop undefined rows
 df['Pretest'] = df[pretest].shift(-shift)
 df.dropna(inplace=True)
 
+# Train with Linear Regression
 x = np.array(df['Adj. Close'])
 y = np.array(df['Pretest'])
 
@@ -35,10 +40,10 @@ y_test = y_test.reshape(-1,1)
 
 clf = LinearRegression(n_jobs=-1)
 clf.fit(x_train,y_train)
-print('Training accuracy: ', clf.score(x_test,y_test))
+print('Training accuracy: ', clf.score(x_test,y_test)) # Display accuracy
 
+# Predict recent days
 df.dropna(inplace=False)
-
 recent_cls = np.array(df[pretest]).reshape(-1,1)
 recent_cls = recent_cls[-shift:]
 predict = clf.predict(recent_cls)
